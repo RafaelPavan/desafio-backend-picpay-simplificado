@@ -1,13 +1,14 @@
-package com.rafaelpavan.validations;
+package com.rafaelpavan.validations.user;
 
 import com.rafaelpavan.models.dtos.user.UserDto;
 import com.rafaelpavan.models.dtos.validations.ErrorDto;
-import com.rafaelpavan.models.enums.user.UserType;
+import com.rafaelpavan.validations.CpfValidation;
+import com.rafaelpavan.validations.EmailValidation;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FieldsValidations {
+public class SaveUserValidation {
 
     public static List<ErrorDto> execute(UserDto userDto){
 
@@ -34,7 +35,7 @@ public class FieldsValidations {
         }else EmailValidation.emailValidation(userDto.email());
 
 
-        if(userDto.userType() != UserType.COMMON && userDto.userType() != UserType.MERCHANT ){
+        if(userDto.userType().isBlank() ){
             errors.add(new ErrorDto("userType", "Campo Obrigatório"));
         }
 

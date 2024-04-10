@@ -26,10 +26,10 @@ public class Transaction implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    private BigDecimal amount;
+    public BigDecimal amount;
     @ManyToOne
-    private User sender;
+    public User sender;
     @ManyToOne
-    private User receiver;
-    private LocalDateTime transaction_time;
+    public User receiver;
+    public LocalDateTime transaction_time;
 }

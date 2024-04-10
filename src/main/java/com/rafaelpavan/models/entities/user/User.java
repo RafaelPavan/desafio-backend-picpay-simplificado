@@ -51,7 +51,7 @@ public class User implements Serializable {
         this.lastName = data.lastName();
         this.document = data.document();
         this.balance = data.balance();
-        this.userType = data.userType();
+        this.userType = UserType.valueOf(data.userType());
         this.password = data.password();
         this.email = data.email();
     }

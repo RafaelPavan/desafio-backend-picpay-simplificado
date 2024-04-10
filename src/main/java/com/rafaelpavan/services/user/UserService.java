@@ -1,14 +1,15 @@
 package com.rafaelpavan.services.user;
 
-import com.rafaelpavan.exceptions.user.BlankOrNullFieldsException;
-import com.rafaelpavan.exceptions.user.DuplicateDcoException;
-import com.rafaelpavan.exceptions.user.DuplicateEmailException;
-import com.rafaelpavan.exceptions.user.UserNotFoundException;
+import com.rafaelpavan.exceptions.user.*;
+import com.rafaelpavan.models.dtos.user.UpdateUserDto;
 import com.rafaelpavan.models.dtos.user.UserDto;
 import com.rafaelpavan.models.dtos.validations.ErrorDto;
 import com.rafaelpavan.models.entities.user.User;
+import com.rafaelpavan.models.enums.user.UserType;
+import com.rafaelpavan.models.mapper.user.UpdateUserMapper;
 import com.rafaelpavan.repositories.user.UserRepository;
-import com.rafaelpavan.validations.FieldsValidations;
+import com.rafaelpavan.validations.user.SaveUserValidation;
+import com.rafaelpavan.validations.user.UpdateUserValidation;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,25 +19,22 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UpdateUserMapper userMapper;
 
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, UpdateUserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
-    public User saveUser(UserDto data)  {
+    public User saveUser(UserDto data) {
         var newUser = new User(data);
 
-        List<ErrorDto> errors = FieldsValidations.execute(data);
+        List<ErrorDto> errors = SaveUserValidation.execute(data);
 
-        if(!errors.isEmpty()) {
-            System.out.println(errors + "errorss");
+        if (!errors.isEmpty()) {
             throw new BlankOrNullFieldsException(errors);
         }
-
-//        var isDocumentAlreadyExists = userRepository.findAll()
-//                .stream()
-//                .anyMatch(user -> user.getDocument().equals(newUser.getDocument()));
 
         if (this.userRepository.existsByDocument(newUser.getDocument())) {
             throw new DuplicateDcoException();
@@ -44,11 +42,6 @@ public class UserService {
         if (this.userRepository.existsByEmail(newUser.getEmail())) {
             throw new DuplicateEmailException();
         }
-
-//        CpfValidation.validate(newUser.getDocument());
-
-//        EmailValidation.emailValidation(newUser.getEmail());
-
 
         this.userRepository.save(newUser);
 
@@ -62,5 +55,38 @@ public class UserService {
 
     public User findUserById(UUID id) {
         return this.userRepository.findUserById(id).orElseThrow(UserNotFoundException::new);
+    }
+
+    public User updateUser(UUID id, UpdateUserDto updateUserDto) {
+
+        var findUser = userRepository.findUserById(id).orElseThrow(UserNotFoundException::new);
+
+        var updateUser = userMapper.toEntity(updateUserDto);
+        updateUser.setId(findUser.getId());
+        updateUser.setPassword(findUser.getPassword());
+        updateUser.setDocument(findUser.getDocument());
+        updateUser.setBalance(findUser.getBalance());
+
+        List<ErrorDto> errors = UpdateUserValidation.execute(updateUserDto);
+
+        if (!errors.isEmpty()) {
+            throw new BlankOrNullFieldsException(errors);
+        }
+
+        String emailFromRepository = findUser.getEmail();
+        String emailFromDto = updateUserDto.email();
+
+        if (!emailFromRepository.equals(emailFromDto)) {
+            if (userRepository.existsByEmail(updateUser.getEmail())) {
+                throw new DuplicateEmailException();
+            }
+        }
+        if (isUserTypeExists(updateUserDto)) throw new UserTypeException() ;
+
+        return userRepository.save(updateUser);
+    }
+
+    private static boolean isUserTypeExists(UpdateUserDto userType){
+        return userType.userType() == UserType.COMMON || userType.userType() == UserType.MERCHANT;
     }
 }
