@@ -51,5 +51,9 @@ public class ControllerExceptionHandler {
     public ResponseEntity<Object> handleInvalidTransaction(InvalidTransactionException e){
         return ResponseEntity.internalServerError().body(e.getMessage());
     }
+    @ExceptionHandler(UserTypeException.class)
+    public ResponseEntity<Object> handleInvalidTransaction(UserTypeException e){
+        return ResponseEntity.internalServerError().body(e.getMessage());
+    }
 
 }
