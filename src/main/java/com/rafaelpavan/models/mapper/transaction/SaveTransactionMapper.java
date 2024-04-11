@@ -16,7 +16,7 @@ public interface SaveTransactionMapper {
 
     @Mapping(source = "amount", target = "amount")
     @Mapping(source = "sender", target = "sender_id")
-    @Mapping(source = "receiver", target = "receiver_id")
+    @Mapping(source = "email", target = "receiver_email")
     @Mapping(source = "transaction_time", target = "transaction_time")
     TransactionDto toDto(Transaction entity);
 

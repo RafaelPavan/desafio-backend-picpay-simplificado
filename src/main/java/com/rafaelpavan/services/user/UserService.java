@@ -56,6 +56,9 @@ public class UserService {
     public User findUserById(UUID id) {
         return this.userRepository.findUserById(id).orElseThrow(UserNotFoundException::new);
     }
+    public User findUserByEmail(String email) {
+        return this.userRepository.findUserByEmail(email).orElseThrow(UserNotFoundException::new);
+    }
 
     public User updateUser(UUID id, UpdateUserDto updateUserDto) {
 

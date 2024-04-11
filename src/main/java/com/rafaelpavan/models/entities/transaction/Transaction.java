@@ -17,6 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class Transaction implements Serializable {
 
     @Serial
@@ -29,7 +30,7 @@ public class Transaction implements Serializable {
     public BigDecimal amount;
     @ManyToOne
     public User sender;
-    @ManyToOne
-    public User receiver;
+   @Column(name = "receiver_email")
+    public String email;
     public LocalDateTime transaction_time;
 }

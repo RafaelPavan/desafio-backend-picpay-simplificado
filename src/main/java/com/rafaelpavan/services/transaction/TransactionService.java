@@ -44,25 +44,25 @@ public class TransactionService {
     public TransactionDto create(TransactionDto transactionDto) {
 
         User sender = this.userService.findUserById(transactionDto.sender_id());
-        User receiver = this.userService.findUserById(transactionDto.receiver_id());
+        User receiver = this.userService.findUserByEmail(transactionDto.receiver_email());
 
         validate(transactionDto);
 
         Transaction savedTransaction = transactionRepository.save(saveTransactionMapper.toEntity(transactionDto));
         savedTransaction.setAmount(transactionDto.amount());
         savedTransaction.setSender(sender);
-        savedTransaction.setReceiver(receiver);
+        savedTransaction.setEmail(receiver.getEmail());
         savedTransaction.setTransaction_time(LocalDateTime.now());
 
         var userSender = userRepository.findById(transactionDto.sender_id()).get();
-        var userReceiver = userRepository.findById(transactionDto.receiver_id()).get();
+        var userReceiver = userRepository.findUserByEmail(transactionDto.receiver_email()).get();
 
         userRepository.save(userSender.debit(transactionDto.amount()));
         userRepository.save(userReceiver.credit(transactionDto.amount()));
 
         //4 - chamar transação
 
-//        authorizationService.authorize(transactionDto);
+        authorizationService.authorize(transactionDto);
 
         // notification
 //        notificationService.notify(transactionDto);
@@ -78,7 +78,7 @@ public class TransactionService {
      * - the payer isn't the payee (transaction to herself)
      * */
     private void validate(TransactionDto transaction) {
-        userRepository.findById(transaction.receiver_id())
+        userRepository.findUserByEmail(transaction.receiver_email())
                 .map(payee -> userRepository.findById(transaction.sender_id())
                         .map(payer -> isTransactionValid(transaction, payer) ? transaction : null)
                         .orElseThrow(InvalidTransactionException::new))
@@ -88,7 +88,7 @@ public class TransactionService {
     private static boolean isTransactionValid(TransactionDto transaction, User payer) {
         return payer.getUserType() == UserType.COMMON &&
                 payer.getBalance().compareTo(transaction.amount()) >= 0 &&
-                !payer.getId().equals(transaction.receiver_id());
+                !payer.getEmail().equals(transaction.receiver_email());
     }
 
     public List<TransactionDto> getAllTransactions() {
